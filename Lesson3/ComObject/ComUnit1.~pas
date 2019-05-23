@@ -1,0 +1,29 @@
+unit ComUnit1;
+
+{$WARN SYMBOL_PLATFORM OFF}
+
+interface
+
+uses
+  Windows, ActiveX, Classes, ComObj, ComProject_TLB, StdVcl;
+
+type
+  TClassCom = class(TTypedComObject, IClassCom)
+  protected
+    function Plus(x, y: SYSINT): SYSINT; stdcall;
+    {Declare IClassCom methods here}
+  end;
+
+implementation
+
+uses ComServ;
+
+function TClassCom.Plus(x, y: SYSINT): SYSINT;
+begin
+
+end;
+
+initialization
+  TTypedComObjectFactory.Create(ComServer, TClassCom, Class_ClassCom,
+    ciMultiInstance, tmApartment);
+end.
