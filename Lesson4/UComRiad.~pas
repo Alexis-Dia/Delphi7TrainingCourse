@@ -1,0 +1,223 @@
+unit UComRiad;
+
+{$WARN SYMBOL_PLATFORM OFF}
+
+interface
+
+uses
+Windows, ActiveX, Classes, ComObj, Chart, Grids, Math, SysUtils, IniFiles,
+UCom_Tlb, ExtCtrls;
+
+type
+TRiad = class(TComObject, IComRiad)
+protected
+IniFile : TIniFile; //Объект Ini-файла
+w : integer;
+arr: Dat_Ar;//Массив для хранения значения функции в точках
+
+public
+Procedure Create(AIniFileName : string); stdcall;
+Destructor Destroy;
+procedure Graphic(AChart:TChart); stdcall; //Постоение графика
+procedure Table(AStringGrid:TStringGrid); stdcall; //Вывод в таблицу
+procedure WriteToIniFile; stdcall; //Запись в Ini-файл
+procedure ReadFromIniFile; stdcall; //Чтение из Ini-файла
+function GetW : integer; stdcall; //Получить w
+procedure SetW; stdcall; //Установить w
+function F(w:integer; t:extended):extended;stdcall;//Вычисление суммы
+
+
+function selectedOption(x, y: real): real;
+function method_ejlera(a, b, y0, h: real; n: integer): Dat_Ar; stdcall;//Обычный метод
+function mmethod_ejlera(a, b, y0, h: real; n: integer); stdcall;//Модифицированный метод
+function GetRes : Dat_Ar; stdcall; //Получить arr res
+private
+
+end;
+
+
+
+implementation
+
+uses ComServ, Dialogs, Graphics, UnitMain;
+const P=500;
+const x=1;
+const TimeStart=0; //Время начала отсчета
+const TimeEnd=100; //Время окончания отсчета
+const TimeStep=0.5; //Шаг дискретизация времени
+
+Procedure TRiad.Create(AIniFileName : string);
+begin
+//Создать объект Ini-файла
+IniFile:= TIniFile.Create(AIniFileName);
+end;//TRod.Create
+
+Destructor TRiad.Destroy;
+begin //Не используется
+//Удалить из Heap объект Ini-файла
+if Assigned(IniFile) then
+begin
+IniFile.Free;
+IniFile:= NIL;
+end;
+end;//TRod.Create
+
+
+
+procedure TRiad.Graphic(AChart : TChart);
+//Построение графика
+var
+time : extended;
+Y1, Y2 : extended;
+begin
+Time:= TimeStart;
+AChart.Series[0].Clear; //Очистить Series[0]
+AChart.Series[1].Clear; //Очистить Series[1]
+AChart.BottomAxis.Increment:= Floor((TimeEnd - TimeStart) / 5);
+//Занести значения в Series
+while(time <= TimeEnd) do
+begin
+Y1:= F(w,time);
+Y2:= F(w,time);
+AChart.Series[0].AddXY(time, Y1);
+AChart.Series[1].AddXY(time, Y2);
+time:= time + TimeStep / 4;
+end;
+end;//TRiad.Graphic
+
+function TRiad.F(w : integer;t : extended) : extended;
+//вычисление функции
+var
+j:integer;
+begin
+ F:=(2*P/x)*(sin(w*t)-1/2*sin(2*w*t)+1/3*sin(3*w*t)-1/4*sin(4*w*t))
+end;//TRiad.F
+
+procedure TRiad.Table(AStringGrid : TStringGrid);
+//Вывод информации в таблицу
+var
+k : integer;
+time : extended;
+y: extended;
+begin
+k:= 0;
+time:= TimeStart;
+
+while (time <= TimeEnd) do
+begin
+inc(k);
+y:= F(w, time);
+Form1.StringGrid1.Cells[2,k]:= FloatToStrF(y , ffFixed, 5, 3);
+time:= time + TimeStep;
+end;
+end;//TRiad.Table
+
+procedure TRiad.WriteToIniFile;
+//запись в Ini-файл
+begin
+IniFile.WriteInteger('Parameters', 'W', W);
+IniFile.UpdateFile;//очистка буфера и запись файла на диск
+end;//TRiad.WriteToIniFile
+
+procedure TRiad.ReadFromIniFile;
+//чтение из Ini-файла
+begin
+W:= IniFile.ReadInteger('Parameters', 'W', w);
+end;//TRiad.ReadFromIniFile
+
+function TRiad.GetW :integer;
+begin
+ result:= W;
+end;//TRiad.GetW
+
+procedure TRiad.SetW;
+begin
+if Form1.RadioGroup1.ItemIndex=-1 then
+    MessageDlg(Pchar('Не выбрано значение w!!!'),mtError,[mbOk],0);
+ if Form1.RadioGroup1.ItemIndex =0 then
+  begin
+  Form1.Label10.Caption:='1';
+  w:=1;
+  end
+ else if Form1.RadioGroup1.ItemIndex =1 then
+  begin
+  Form1.label10.Caption:='3';
+  w:=3;
+   end
+  else
+  begin
+  Form1.label10.Caption:='5';
+  w:=5;
+  end ;
+ end;//TRiad.SetW
+
+//Определение функции дифиринциального уравнения
+function TRiad.selectedOption(x, y: real): real;
+begin
+     //Тестовые варианты различных функций
+     //f := x + cos(y/sqrt(5));
+     //f:= x + exp(x) - 1;
+     selectedOption:=exp(x)+sin(x)-sqrt(x);
+end;
+
+//Обычный метод Эйлера
+function TRiad.method_ejlera(a, b, y0, h: real; n: integer): Dat_Ar;
+ var
+  xn: real;
+  res_Ar: Dat_Ar;
+  i: integer;
+begin
+     i := 1;
+     res_Ar[1, 1] := a;
+     res_Ar[1, 2] := y0;
+     xn := a + h;
+     while (xn <= b) do
+       begin
+         i := i + 1;
+         res_Ar[i, 1] := res_Ar[i-1, 1] + h;
+         res_Ar[i, 2] := res_Ar[i-1, 2] + h * selectedOption(res_Ar[i-1, 1], res_Ar[i-1, 2]);
+         xn := xn + h;
+       end;
+    res_Ar[0, 1] := i;
+    method_ejlera := res_Ar;
+end;
+
+//Модифицированный метод Эйлера
+function TRiad.mmethod_ejlera(a, b, y0, h: real; n: integer): Dat_Ar;
+var
+  xn,xr,yr: real;
+  res_Ar: Dat_Ar;
+  i: integer;
+begin
+     i := 1;
+     res_Ar[1, 1] := a;
+     res_Ar[1, 2] := y0;
+     xn := a + h;
+     while (xn <= b) do
+       begin
+         i := i + 1;
+         //Следующие строки являются отличием от обычного метода
+         xr:= res_Ar[i-1, 1] + h/2;//определение серединнй точки
+         //Расчет значения функции в этой точке
+         yr:= res_Ar[i-1, 2] + (h/2) * selectedOption(res_Ar[i-1, 1], res_Ar[i-1, 2]);
+         //Расчет и занесение новых значений в массив
+         res_Ar[i, 1] := res_Ar[i-1, 1] + h;
+         //В этом расчете такэже берутся ранее расчитанные значения в серединной точке
+         res_Ar[i, 2] := res_Ar[i-1, 2] + h * selectedOption(xr, yr);
+         xn := xn + h;
+       end;
+    res_Ar[0, 1] := i;
+    mmethod_ejlera := res_Ar;
+end;
+
+function TRiad.GetRes :Dat_Ar;
+begin
+ result:= arr;
+end;//TRiad.GetW
+
+initialization
+TComObjectFactory.Create(ComServer, TRiad, Class_ServerRiad,
+'ServerRiad', '', ciMultiInstance, tmApartment);
+end.
+
+

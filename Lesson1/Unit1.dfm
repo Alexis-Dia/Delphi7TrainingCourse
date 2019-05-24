@@ -30,4 +30,13 @@ object Form1: TForm1
     TabOrder = 1
     Text = 'Edit1'
   end
+  object Memo1: TMemo
+    Left = 248
+    Top = 168
+    Width = 185
+    Height = 89
+    Lines.Strings = (
+      'Memo1')
+    TabOrder = 2
+  end
 end

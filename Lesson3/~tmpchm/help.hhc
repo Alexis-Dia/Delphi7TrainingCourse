@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<BODY>
+<OBJECT type="text/site properties">
+	<param name="Window Styles" value="0x800025">
+</OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Introduction">
+	<param name="Local" value="-.html">
+</OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="About programm">
+	<param name="Local" value="second-topic.html">
+</OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Metods of calculating">
+	<param name="Local" value="chapter-2.html">
+</OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="General information">
+	<param name="Local" value="overview.html">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Left rectangles">
+	<param name="ImageNumber" value="11">
+	<param name="Local" value="-2.html">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Right rectangles">
+	<param name="Local" value="-3.html">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Medium rectangles">
+	<param name="Local" value="-4.html">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Trapezium">
+	<param name="Local" value="topic.html">
+</OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Form">
+	<param name="Local" value="--dll.html">
+</OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="General information">
+	<param name="Local" value="-5.html">
+</OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="Function">
+	<param name="Local" value="--dll2.html">
+</OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap">
+	<param name="Name" value="General information">
+	<param name="Local" value="-6.html">
+</OBJECT>
+</UL>
+</UL>
+</BODY></HTML>
