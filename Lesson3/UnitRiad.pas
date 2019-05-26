@@ -1,0 +1,266 @@
+unit UnitRiad;
+interface
+
+uses Chart, Series, Math, Grids, SysUtils, Types, Graphics,  IniFiles, Messages,
+ Dialogs, StdCtrls, Variants, Classes, Controls, Forms, ExtCtrls, Buttons, Menus,
+ WordXP, Clipbrd, OleServer, ComObj, UnitMain;
+
+type
+  Dat_Ar = array[0..1000, 1..2] of real;//Массив для хранения значения функции в точках
+
+Type
+TRiad = class //класс
+
+private
+IniFile : TIniFile; //Объект Ini-файла
+w: integer;
+arr: Dat_Ar;//Массив для хранения значения функции в точках
+
+public
+Constructor Create(AIniFileName : string);
+Destructor Destroy;
+
+procedure WriteToIniFile; //Запись в Ini-файл
+procedure ReadFromIniFile; //Чтение из Ini-файла
+function GetW : integer; //Получить w
+procedure SetW; //Установить w
+procedure SaveToWord; //Запись в Excel
+procedure SaveToExcel; //Запись в Excel
+procedure BuildTable(AStringGrid:TStringGrid; res_Ar:Dat_Ar); stdcall; //Постоение отчета
+procedure BuildGraphic(AChart:TChart; res_Ar:Dat_Ar); stdcall; //Постоение графика
+function SelectedOption(x, y: real): real;
+function MethodEjlera(a, b, y0, h: real; n: integer): Dat_Ar; stdcall;//Обычный метод
+function MmethodEjlera(a, b, y0, h: real; n: integer): Dat_Ar; stdcall;//Модифицированный метод
+
+private
+
+end;
+
+var
+Riad : TRiad; //Объект
+
+implementation
+
+Constructor TRiad.Create(AIniFileName : string);
+  begin
+    //Создать объект Ini-файла
+    IniFile:= TIniFile.Create(AIniFileName);
+  end;//TRiad.Create
+
+Destructor TRiad.Destroy;
+  begin
+    //Удалить из Heap объект Ini-файла
+    if Assigned(IniFile) then
+      begin
+      IniFile.Free;
+      IniFile:= NIL;
+    end;
+  end;//TRiad.Create
+
+procedure TRiad.WriteToIniFile;
+  //запись в Ini-файл
+  begin
+    IniFile.WriteInteger('Parameters', 'W', W);
+    IniFile.UpdateFile;//очистка буфера и запись файла на диск
+  end;//TRiad.WriteToIniFile
+
+procedure TRiad.ReadFromIniFile;
+//чтение из Ini-файла
+begin
+W:= IniFile.ReadInteger('Parameters', 'W', w);
+end;//TRiad.ReadFromIniFile
+
+function TRiad.GetW :integer;
+  begin
+    result:= W;
+  end;
+
+procedure TRiad.SetW;
+  begin
+    if Form1.RadioGroup1.ItemIndex=-1 then
+      MessageDlg(Pchar('Не выбрано значение w!!!'),mtError,[mbOk],0);
+    if Form1.RadioGroup1.ItemIndex =0 then
+      begin
+      w:=1;
+    end
+    else if Form1.RadioGroup1.ItemIndex =1 then
+      begin
+      w:=2;
+    end
+    else if Form1.RadioGroup1.ItemIndex =2 then
+    begin
+      w:=3;
+    end;
+  end;
+
+//Отчет в Word
+procedure TRiad.SaveToWord;
+  var
+    i,j,k : integer;
+    a,b,c : OleVariant;
+    wa : TWordApplication; //WordApplication
+    wd : TWordDocument; //WordDocument
+  begin
+    //Создать com-объект
+    wa:= TWordApplication.Create(Form1);
+   //Подключиться к серверу Word
+   wa.Connect;
+   //Добавить новый документ
+   wa.Documents.Add(EmptyParam, EmptyParam, EmptyParam, EmptyParam);
+   wd:= TWordDocument.Create(Form1);
+   wd.ConnectTo(wa.ActiveDocument);
+   //Отменить проверку правописания
+   wa.Options.CheckSpellingAsYouType:=False;
+   //Отменить проверку орфографии
+   wa.Options.CheckGrammarAsYouType:=False;
+   a:= 0;
+   b:= 0;
+   wd.Range.InsertAfter('Отчет');
+   c:= Length(wd.Range.Text) - 1;
+   a:= c;
+   b:= c + 10;
+   //Добавить таблицу
+   wd.Tables.Add(wd.Range(a), Form1.StringGrid1.RowCount,
+   Form1.StringGrid1.ColCount, EmptyParam, EmptyParam);
+   k:= 1;
+   //Перенести данные из StringGrid в таблицу
+   for i:= 1 to Form1.StringGrid1.RowCount do
+     for j:= 1 to Form1.StringGrid1.ColCount do
+       wd.Tables.Item(k).Cell(i,j).Range.Text:= Form1.StringGrid1.Cells[j-1, i-1];
+       c:= Length(wd.Range.Text) - 1;
+    a:= c;
+    //Вставить изображение из буфера обмена
+    wa.Selection.Paste;
+    //Показать Word
+    wa.Visible:= true;
+  end;
+
+//Отчет в Excel
+procedure TRiad.SaveToExcel;
+  var
+    Excel : variant;
+    WorkBook : variant; //Рабочая книга
+    i, j : integer;
+  begin
+    //Создать Соm-объект
+    Excel:= CreateOleObject('Excel.Application');
+    //Отключить реакцию на внешние события-для ускорения процесса передачи данных
+    Excel.Application.EnableEvents:= false;
+    //Добавить рабочую книгу
+    WorkBook:= Excel.WorkBooks.Add;
+    //Изменение ширины столбцов
+    for j:=0 to Form1.StringGrid1.ColCount do
+    WorkBook.WorkSheets[1].Columns[j+1].ColumnWidth:= 10;
+   //Вывод строки
+   WorkBook.WorkSheets[1].Cells[1,1]:= 'Отчет о колебаниях стержня';
+   //Заполнение ячеек таблицы Excel значениями из StringGrid
+   //Нумерация ячеек в Excel начинается с 1 и идет в формате строка-столбец
+   for i:= 1 to Form1.StringGrid1.RowCount + 1 do
+     for j:= 0 to Form1.StringGrid1.ColCount do
+       WorkBook.WorkSheets[1].Cells[i+1, j+1]:= Form1.StringGrid1.Cells[j, i-1];
+      //Вставит изображение графика в Excel
+   WorkBook.WorkSheets[1].Shapes.AddPicture(GetCurrentDir+'\PictureWord.bmp',
+   True, True, 0, (Form1.StringGrid1.RowCount+2)*12.5+10);
+   //Показать Excel
+   Excel.Visible:=true;
+  end;
+
+procedure TRiad.BuildTable(AStringGrid:TStringGrid; res_Ar:Dat_Ar);
+var
+   i: integer;
+begin
+    for i := 1 to round(res_Ar[0, 1]) do
+      begin
+        Form1.StringGrid1.Cells[0,i]:=IntToStr(i);
+        Form1.StringGrid1.Cells[1,i]:=FloatToStr(res_Ar[i, 1]);
+        Form1.StringGrid1.Cells[2,i]:=FloatToStr(res_Ar[i, 2]);
+      end;
+end;//TRiad.Graphic1
+
+procedure TRiad.BuildGraphic(AChart : TChart; res_Ar:Dat_Ar);
+//Построение графика
+var
+  i,n: integer;
+begin
+    AChart.Series[0].Clear; //Очистить Series[0]
+    //res_Ar := method_ejlera(a, b, y0, h,n);
+    //Занесение данныхз из рассчитанного массива в протокол и
+    //форммирование новой серии для построения графика
+    for i := 1 to round(res_Ar[0, 1]) do
+      begin
+        AChart.Series[0].AddXY(res_Ar[i, 1], res_Ar[i, 2]);
+      end;
+end;//TRiad.Graphic1
+
+//Тестовые варианты различных функций дифиринциального уравнения
+//selectedOption := x + cos(y/sqrt(5));
+//selectedOption:= x + exp(x) - 1;
+//selectedOption:=exp(x)+sin(x)-sqrt(x);
+function TRiad.SelectedOption(x, y: real): real;
+begin
+  if Form1.RadioGroup1.ItemIndex =0 then
+    begin
+      SelectedOption:=exp(x)+sin(x)-sqrt(x);
+    end
+  else if Form1.RadioGroup1.ItemIndex =1 then
+    begin
+      SelectedOption:= x + exp(x) - 1;
+    end
+  else if Form1.RadioGroup1.ItemIndex =2 then
+    begin
+      SelectedOption := x + cos(y/sqrt(5));
+    end
+end;
+
+//Обычный метод Эйлера
+function TRiad.MethodEjlera(a, b, y0, h: real; n: integer): Dat_Ar;
+ var
+  xn: real;
+  res_Ar: Dat_Ar;
+  i: integer;
+begin
+     i := 1;
+     res_Ar[1, 1] := a;
+     res_Ar[1, 2] := y0;
+     xn := a + h;
+     while (xn <= b) do
+       begin
+         i := i + 1;
+         res_Ar[i, 1] := res_Ar[i-1, 1] + h;
+         res_Ar[i, 2] := res_Ar[i-1, 2] + h * SelectedOption(res_Ar[i-1, 1], res_Ar[i-1, 2]);
+         xn := xn + h;
+       end;
+    res_Ar[0, 1] := i;
+    MethodEjlera := res_Ar;
+end;
+
+//Модифицированный метод Эйлера
+function TRiad.MmethodEjlera(a, b, y0, h: real; n: integer): Dat_Ar;
+var
+  xn,xr,yr: real;
+  res_Ar: Dat_Ar;
+  i: integer;
+begin
+     i := 1;
+     res_Ar[1, 1] := a;
+     res_Ar[1, 2] := y0;
+     xn := a + h;
+     while (xn <= b) do
+       begin
+         i := i + 1;
+         //Следующие строки являются отличием от обычного метода
+         xr:= res_Ar[i-1, 1] + h/2;//определение серединнй точки
+         //Расчет значения функции в этой точке
+         yr:= res_Ar[i-1, 2] + (h/2) * selectedOption(res_Ar[i-1, 1], res_Ar[i-1, 2]);
+         //Расчет и занесение новых значений в массив
+         res_Ar[i, 1] := res_Ar[i-1, 1] + h;
+         //В этом расчете такэже берутся ранее расчитанные значения в серединной точке
+         res_Ar[i, 2] := res_Ar[i-1, 2] + h * selectedOption(xr, yr);
+         xn := xn + h;
+       end;
+    res_Ar[0, 1] := i;
+    MmethodEjlera := res_Ar;
+end;
+
+end.
+
