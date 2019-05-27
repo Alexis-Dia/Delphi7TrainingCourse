@@ -137,33 +137,58 @@ procedure TRiad.SaveToWord;
 
 //Отчет в Excel
 procedure TRiad.SaveToExcel;
-  var
-    Excel : variant;
-    WorkBook : variant; //Рабочая книга
-    i, j : integer;
-  begin
-    //Создать Соm-объект
-    Excel:= CreateOleObject('Excel.Application');
-    //Отключить реакцию на внешние события-для ускорения процесса передачи данных
-    Excel.Application.EnableEvents:= false;
-    //Добавить рабочую книгу
-    WorkBook:= Excel.WorkBooks.Add;
-    //Изменение ширины столбцов
-    for j:=0 to Form1.StringGrid1.ColCount do
-    WorkBook.WorkSheets[1].Columns[j+1].ColumnWidth:= 10;
-   //Вывод строки
-   WorkBook.WorkSheets[1].Cells[1,1]:= 'Отчет о колебаниях стержня';
-   //Заполнение ячеек таблицы Excel значениями из StringGrid
-   //Нумерация ячеек в Excel начинается с 1 и идет в формате строка-столбец
-   for i:= 1 to Form1.StringGrid1.RowCount + 1 do
-     for j:= 0 to Form1.StringGrid1.ColCount do
-       WorkBook.WorkSheets[1].Cells[i+1, j+1]:= Form1.StringGrid1.Cells[j, i-1];
-      //Вставит изображение графика в Excel
-   WorkBook.WorkSheets[1].Shapes.AddPicture(GetCurrentDir+'\PictureWord.bmp',
-   True, True, 0, (Form1.StringGrid1.RowCount+2)*12.5+10);
-   //Показать Excel
-   Excel.Visible:=true;
+const
+  xlWBATWorksheet = -4167;
+var
+  Result: Boolean;
+  Row, n1, n2: Integer;
+  curSt,stt: string;
+  exRange,XLApp, Sheet: OLEVariant;
+  today : TDateTime;
+begin
+  today := Now;//Получение даты
+  //Создание  документа
+  XLApp  := CreateOleObject('Excel.Application');
+  XLApp.Application.EnableEvents:= true;
+  Result := False;
+  try
+    //Настройка документа и книги
+    XLApp.Visible := False;
+    XLApp.Workbooks.Add(xlWBatWorkSheet);
+    Sheet      := XLApp.Workbooks[1].WorkSheets[1];
+    Sheet.Name := 'Create '+DateToStr(today);
+    //Формирование заголовков столбцов
+    Sheet.Columns[2].ColumnWidth:=25;
+    Sheet.Columns[3].ColumnWidth:=25;
+    Sheet.Cells[1,1] := 'Index';
+    Sheet.Cells[1,2] := 'X';
+    Sheet.Cells[1,3] := 'Y';
+    //Настройка формата диапазона
+    exRange:= Sheet.Range[Sheet.Cells[1, 2],Sheet.Cells[100, 3]];
+    exRange.NumberFormat := '0,000000';
+    exRange.Value := exRange.Value;
+    //Цикл по количеству строк
+    for row := 1 to round(arr[0, 1]) do
+    //for row := 0 to myMemo.Lines.Count - 1 do
+        begin
+         Sheet.Cells[row + 2,1] := FloatToStr(row);
+         Sheet.Cells[row + 2,2] := StrToFloat(FloatToStrF(arr[row, 1], ffFixed, 6, 2));
+         Sheet.Cells[row + 2,3] := StrToFloat(FloatToStr(arr[row, 2]));
+        end;
+    try
+      //XLApp.Workbooks[1].SaveAs('C:\123.xls');
+      Result := True;
+    except
+      // Error
+    end;
+    XLApp.Visible:=true;
+    finally
+    if not VarIsEmpty(XLApp) then
+    begin
+      XLApp.DisplayAlerts := True;
+    end;
   end;
+end;
 
 procedure TRiad.BuildTable(AStringGrid:TStringGrid; res_Ar:Dat_Ar);
 var
@@ -231,6 +256,7 @@ begin
          xn := xn + h;
        end;
     res_Ar[0, 1] := i;
+    arr := res_Ar;
     MethodEjlera := res_Ar;
 end;
 
@@ -259,6 +285,7 @@ begin
          xn := xn + h;
        end;
     res_Ar[0, 1] := i;
+    arr := res_Ar;
     MmethodEjlera := res_Ar;
 end;
 
