@@ -3,7 +3,7 @@ interface
 
 uses Chart, Series, Math, Grids, SysUtils, Types, Graphics,  IniFiles, Messages,
  Dialogs, StdCtrls, Variants, Classes, Controls, Forms, ExtCtrls, Buttons, Menus,
- WordXP, Clipbrd, OleServer, ComObj, UnitMain;
+ MSPpt2000, WordXP, Clipbrd, OleServer, ComObj, Activex, PowerPointXP, UnitMain;
 
 type
   Dat_Ar = array[0..1000, 1..2] of real;//Массив для хранения значения функции в точках
@@ -26,6 +26,7 @@ function GetW : integer; //Получить w
 procedure SetW; //Установить w
 procedure SaveToWord; //Запись в Excel
 procedure SaveToExcel; //Запись в Excel
+procedure ShowPresentation; //Запуск презентации
 procedure BuildTable(AStringGrid:TStringGrid; res_Ar:Dat_Ar); stdcall; //Постоение отчета
 procedure BuildGraphic(AChart:TChart; res_Ar:Dat_Ar); stdcall; //Постоение графика
 function SelectedOption(x, y: real): real;
@@ -188,6 +189,22 @@ begin
       XLApp.DisplayAlerts := True;
     end;
   end;
+end;
+
+//Запуск презентации
+procedure TRiad.ShowPresentation;
+  var
+    name : string;
+    pw : TOleEnum;
+  begin
+    //Запуск презетации
+    Name:= ExtractFileDir(Application.ExeName) + '\VremProc.pptx';
+    Form1.PowerPointApplication1.Activate;
+    Form1.PowerPointApplication1.Presentations.Open(Name, pw, pw, pw);
+    Form1.PowerPointApplication1.Presentations.Item(1).SlideShowSettings.Run;
+    //Другой способ запуска
+    // ShellExecute(Application.MainForm.Handle,PChar('Open'),
+    // PChar('Riad.pps'), NIL, PChar(''), sw_ShowNormal);
 end;
 
 procedure TRiad.BuildTable(AStringGrid:TStringGrid; res_Ar:Dat_Ar);

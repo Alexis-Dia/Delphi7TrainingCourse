@@ -15,6 +15,7 @@ function Getw : integer; stdcall; //Получить w
 procedure Setw; stdcall; //Установить w
 procedure SaveToWord; //Запись в Word
 procedure SaveToExcel; //Запись в Excel
+procedure ShowPresentation; //Запуск презентации
 procedure BuildTable(AStringGrid:TStringGrid; res_Ar:Dat_Ar); stdcall; //Постоение отчета
 procedure BuildGraphic(AChart:TChart; res_Ar:Dat_Ar); stdcall; //Постоение графика
 function SelectedOption(x, y: real): real; //Выбрать опцию

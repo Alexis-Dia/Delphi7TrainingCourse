@@ -46,6 +46,7 @@ type
     N7: TMenuItem;
     N9: TMenuItem;
     Word1: TSpeedButton;
+    N8: TMenuItem;
     procedure BitBtn1Click(Sender: TObject);
     procedure BitBtn2Click(Sender: TObject);
     procedure BitBtn3Click(Sender: TObject);
@@ -185,19 +186,9 @@ procedure TForm1.N4Click(Sender: TObject);
 end;
 
 procedure TForm1.PresentationClick(Sender: TObject);
-  var
-    name : string;
-    pw : TOleEnum;
   begin
-    //Запуск презетации
-    Name:= ExtractFileDir(Application.ExeName) + '\VremProc.pptx';
-    PowerPointApplication1.Activate;
-    PowerPointApplication1.Presentations.Open(Name, pw, pw, pw);
-    PowerPointApplication1.Presentations.Item(1).SlideShowSettings.Run;
-    //Другой способ запуска
-    // ShellExecute(Application.MainForm.Handle,PChar('Open'),
-    // PChar('Riad.pps'), NIL, PChar(''), sw_ShowNormal);
-  end;//TFormMain.PresentationClick
+    Riad.ShowPresentation();
+  end;
 
 //Отчет в Word
 procedure TForm1.Word1Click(Sender: TObject);

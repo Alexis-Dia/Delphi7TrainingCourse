@@ -24,6 +24,7 @@ function GetW : integer; stdcall; //Получить w
 procedure SetW; stdcall; //Установить w
 procedure SaveToWord; //Запись в Excel
 procedure SaveToExcel; //Запись в Excel
+procedure ShowPresentation; //Запуск презентации
 procedure BuildTable(AStringGrid:TStringGrid; res_Ar:Dat_Ar); stdcall; //Постоение отчета
 procedure BuildGraphic(AChart:TChart; res_Ar:Dat_Ar); stdcall; //Постоение графика
 function SelectedOption(x, y: real): real;
@@ -95,6 +96,11 @@ procedure TRiad.SaveToWord;
   end;
 
 procedure TRiad.SaveToExcel;
+  begin
+  end;
+
+//Запуск презентации
+procedure TRiad.ShowPresentation;
   begin
   end;
 
