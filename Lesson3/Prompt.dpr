@@ -28,7 +28,11 @@ Time:=GetTickCount/1000;         //Запомнить время
 Form.Show;               //Показать форму
 Form.Repaint;               //Перерисовать форму
 //Пока не вышел лимит времени - ничего не делать
-while GetTickCount/1000<Time+4 do;
+while GetTickCount/1000<Time+4 do
+begin
+Sleep(38);
+Form.Gauge1.Progress := Form.Gauge1.Progress + 1;
+end;
 Form.Close;               //Закрыть форму
 Form.Free;               //Уничтожить форму
 end;

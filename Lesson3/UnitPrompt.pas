@@ -4,11 +4,13 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, XPMan, StdCtrls, Buttons, jpeg;
+  Dialogs, ExtCtrls, XPMan, StdCtrls, Buttons, jpeg, Gauges;
 
 type
   TFormPrompt = class(TForm)
     Image1: TImage;
+    Timer1: TTimer;
+    Gauge1: TGauge;
   private
     { Private declarations }
   public

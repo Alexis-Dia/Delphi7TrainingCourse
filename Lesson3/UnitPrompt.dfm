@@ -2,7 +2,7 @@ object FormPrompt: TFormPrompt
   Left = 955
   Top = 206
   Width = 654
-  Height = 513
+  Height = 508
   Caption = #1047#1072#1089#1090#1072#1074#1082#1072
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,7 +17,7 @@ object FormPrompt: TFormPrompt
     Left = 0
     Top = 0
     Width = 638
-    Height = 475
+    Height = 470
     Align = alClient
     Picture.Data = {
       0A544A504547496D616765964E0700FFD8FFE000104A46494600010201012001
@@ -14987,5 +14987,18 @@ object FormPrompt: TFormPrompt
       0014005001400500140050014005001400500140050014005001400500140050
       014000FFD9}
     Proportional = True
+  end
+  object Gauge1: TGauge
+    Left = 208
+    Top = 408
+    Width = 241
+    Height = 25
+    ForeColor = clNavy
+    Progress = 0
+  end
+  object Timer1: TTimer
+    Interval = 100
+    Left = 152
+    Top = 408
   end
 end
